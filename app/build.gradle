@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Номер сборки приходит из CI (-PversionCode=...); локально 1.
+def vCode = (project.findProperty('versionCode') ?: '1').toInteger()
+def vName = project.findProperty('versionName') ?: '0.1.0-dev'
+
+android {
+    namespace 'ru.murtrek.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'ru.murtrek.app'
+        minSdk 24
+        targetSdk 34
+        versionCode vCode
+        versionName vName
+        buildConfigField 'String', 'SITE_URL', '"https://murtrek.com/?app=1"'
+        buildConfigField 'String', 'UPDATE_API', '"https://api.github.com/repos/Mister-Mikhail/murtrek-app/releases/latest"'
+    }
+
+    // Общий тестовый ключ (лежит в репозитории): тестовые сборки ставятся поверх друг друга и обновляются из приложения.
+    // Для публикации в магазине будет отдельный ключ, он в репозиторий не попадёт.
+    signingConfigs {
+        test {
+            storeFile file('murtrek-test.p12')
+            storeType 'pkcs12'
+            storePassword 'murtrek-test'
+            keyAlias 'murtrek'
+            keyPassword 'murtrek-test'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.test
+        }
+    }
+
+    buildFeatures { buildConfig true }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
